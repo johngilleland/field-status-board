@@ -15,3 +15,9 @@ application {
 repositories {
     mavenCentral()
 }
+
+dependencies {
+    implementation 'com.ditto:ditto-java:5.0.2'
+    implementation 'com.ditto:ditto-binaries:5.0.2'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+}
