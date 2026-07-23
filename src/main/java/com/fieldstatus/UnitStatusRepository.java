@@ -16,9 +16,17 @@ public class UnitStatusRepository {
     private static final String UPSERT =
         "INSERT INTO units DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE";
     private static final String FIND_ACTIVE = 
-        "SELECT * FROM units";
+        "SELECT * FROM units WHERE NOT deleted";
     private static final String FIND_BY_ID = 
         "SELECT * FROM units WHERE _id = :id";
+    private static final String SET_STATUS = 
+        "UPDATE units SET status = :status WHERE _id = :id";
+    private static final String TICK = 
+        "UPDATE units SET lastTelemetryTick = :tick WHERE _id = :id";
+    private static final String TOMBSTONE = 
+        "UPDATE units SET deleted = true WHERE _id = :id";
+    private static final String EVICT = 
+        "EVICT FROM units WHERE _id = :id";
 
     private final DittoStore store;
 
@@ -44,6 +52,36 @@ public class UnitStatusRepository {
             .build();
         return store.executeRaw(FIND_BY_ID, args)
             .thenApply(result -> mapResults(result).stream().findFirst());
+    }
+
+    public CompletionStage<Void> setStatus(String id, String status) {
+        DittoCborSerializable.Dictionary args = DittoCborSerializable.buildDictionary()
+            .put("status", status)
+            .put("id", id)
+            .build();
+        return store.execute(SET_STATUS, args);
+    }
+
+    public CompletionStage<Void> tick(String id, long timestamp) {
+        DittoCborSerializable.Dictionary args = DittoCborSerializable.buildDictionary()
+            .put("tick", timestamp)
+            .put("id", id)
+            .build();
+        return store.execute(TICK, args);
+    }
+
+    public CompletionStage<Void> tombstone(String id) {
+        DittoCborSerializable.Dictionary args = DittoCborSerializable.buildDictionary()
+            .put("id", id)
+            .build();
+        return store.execute(TOMBSTONE, args);
+    }
+
+    public CompletionStage<Void> evict(String id) {
+        DittoCborSerializable.Dictionary args = DittoCborSerializable.buildDictionary()
+            .put("id", id)
+            .build();
+        return store.execute(EVICT, args);
     }
 
     private List<UnitStatus> mapResults(DittoQueryResult result) {

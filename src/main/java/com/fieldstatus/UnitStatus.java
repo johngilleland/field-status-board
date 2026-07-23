@@ -8,11 +8,17 @@ public class UnitStatus {
     private final String callsign;
     private final String status;
     private final long lastTelemetryTick;
+    private final boolean deleted;
 
     public UnitStatus(String callsign, String status, long lastTelemetryTick) {
+        this(callsign, status, lastTelemetryTick, false);
+    }
+
+    public UnitStatus(String callsign, String status, long lastTelemetryTick, boolean deleted) {
         this.callsign = callsign;
         this.status = status;
         this.lastTelemetryTick = lastTelemetryTick;
+        this.deleted = deleted;
     }
 
     public String getCallsign() {
@@ -27,6 +33,10 @@ public class UnitStatus {
         return lastTelemetryTick;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
     public static String documentIdFor(String callsign) {
         return callsign.toLowerCase().replace(" ", "-");
     }
@@ -37,6 +47,7 @@ public class UnitStatus {
             .put("callsign", callsign)
             .put("status", status)
             .put("lastTelemetryTick", lastTelemetryTick)
+            .put("deleted", deleted)
             .build();
     }
 
@@ -44,11 +55,12 @@ public class UnitStatus {
         String callsign = doc.get("callsign").asString();
         String status = doc.get("status").asString();
         long lastTelemetryTick = doc.get("lastTelemetryTick").asLong();
-        return new UnitStatus(callsign, status, lastTelemetryTick);
+        boolean deleted = doc.get("deleted").asBoolean();
+        return new UnitStatus(callsign, status, lastTelemetryTick, deleted);
     }
 
     @Override
     public String toString() {
-        return "UnitStatus{callsign='" + callsign + "', status='" + status + "', lastTelemetryTick=" + lastTelemetryTick + "}";
+        return "UnitStatus{callsign='" + callsign + "', status='" + status + "', lastTelemetryTick=" + lastTelemetryTick + ", deleted=" + deleted + "}";
     }
 }
