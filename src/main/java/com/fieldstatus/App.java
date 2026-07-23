@@ -9,18 +9,13 @@ public class App {
         DittoService dittoService = new DittoService();
         Thread.sleep(3000);
 
-        var store = dittoService.getDitto().getStore();
+        UnitStatusRepository repository = new UnitStatusRepository(dittoService.getDitto());
 
-        String insertQuery = """
-            INSERT INTO units DOCUMENTS ({"_id": "alpha-1", "callsign": "ALPHA-1", "status": "active" })
-            """;
+        UnitStatus alpha = new UnitStatus("ALPHA-1", "active", System.currentTimeMillis());
+        repository.upsert(alpha).toCompletableFuture().get();
 
-        store.execute(insertQuery).toCompletableFuture().get();
-
-        DittoQueryResult result = store.executeRaw("SELECT * FROM units").toCompletableFuture().get();
-
-        for (DittoQueryResultItem item : result.getItems()) {
-            System.out.println(item.getJsonString());
+        for (UnitStatus unit : repository.findActive().toCompletableFuture().get()) {
+            System.out.println(unit);
         }
     }
 }
