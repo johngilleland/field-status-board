@@ -9,23 +9,26 @@ public class App {
 
         UnitStatusRepository repository = new UnitStatusRepository(dittoService.getDitto());
 
-        UnitStatus alpha = new UnitStatus("ALPHA-1", "active", System.currentTimeMillis());
-        repository.upsert(alpha).toCompletableFuture().get();
+        repository.observerActive(units -> {
+            System.out.println("--- Board Update (" + units.size() + " active) ---");
+            for (UnitStatus unit : units) {
+                System.out.println(unit);
+            }
+        });
 
         String id = UnitStatus.documentIdFor("ALPHA-1");
-        repository.setStatus(id, "degraded").toCompletableFuture().get();
-        repository.tick(id, System.currentTimeMillis()).toCompletableFuture().get();
 
-        System.out.println("Active units after targeted updates:");
-        for (UnitStatus unit : repository.findActive().toCompletableFuture().get()) {
-            System.out.println(unit);
-        }
+        repository.upsert(new UnitStatus("ALPHA-1", "active", System.currentTimeMillis()))
+            .toCompletableFuture().get();
+        Thread.sleep(1000);     
+
+        repository.setStatus(id, "degraded").toCompletableFuture().get();
+        Thread.sleep(1000);
+        
+        repository.tick(id, System.currentTimeMillis()).toCompletableFuture().get();
+        Thread.sleep(1000);
 
         repository.tombstone(id).toCompletableFuture().get();
-
-        System.out.println("Active units after tombstone:");
-        for (UnitStatus unit : repository.findActive().toCompletableFuture().get()) {
-            System.out.println(unit);
-        }
+        Thread.sleep(1000);
     }
 }

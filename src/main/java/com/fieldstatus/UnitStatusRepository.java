@@ -5,11 +5,13 @@ import com.ditto.java.DittoException;
 import com.ditto.java.DittoQueryResult;
 import com.ditto.java.DittoStore;
 import com.ditto.java.serialization.DittoCborSerializable;
+import com.ditto.java.DittoStoreObserver;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 public class UnitStatusRepository {
 
@@ -82,6 +84,10 @@ public class UnitStatusRepository {
             .put("id", id)
             .build();
         return store.execute(EVICT, args);
+    }
+
+    public DittoStoreObserver observerActive(Consumer<List<UnitStatus>> onChange) throws DittoException {
+        return store.registerObserver(FIND_ACTIVE, result -> onChange.accept(mapResults(result)));
     }
 
     private List<UnitStatus> mapResults(DittoQueryResult result) {
