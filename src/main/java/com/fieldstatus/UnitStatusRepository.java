@@ -6,6 +6,8 @@ import com.ditto.java.DittoQueryResult;
 import com.ditto.java.DittoStore;
 import com.ditto.java.serialization.DittoCborSerializable;
 import com.ditto.java.DittoStoreObserver;
+import com.ditto.java.DittoSync;
+import com.ditto.java.DittoSyncSubscription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +33,15 @@ public class UnitStatusRepository {
         "EVICT FROM units WHERE _id = :id";
 
     private final DittoStore store;
+    private final DittoSync sync;
 
     public UnitStatusRepository(Ditto ditto) {
         this.store = ditto.getStore();
+        this.sync = ditto.getSync();
+    }
+
+    public DittoSyncSubscription subscribeActive() throws DittoException {
+        return sync.registerSubscription(FIND_ACTIVE);
     }
 
     public CompletionStage<Void> upsert(UnitStatus unit) {

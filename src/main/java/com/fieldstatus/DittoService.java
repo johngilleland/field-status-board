@@ -7,19 +7,30 @@ public class DittoService {
 
     private final Ditto ditto;
 
-    public DittoService() {
+    public DittoService(String instanceName) {
         Dotenv dotenv = Dotenv.load();
 
         String endpoint = dotenv.get("DITTO_ENDPOINT_URL");
         String databaseId = dotenv.get("DITTO_DATABASE_ID");
         String authToken = dotenv.get("DITTO_AUTH_TOKEN");
 
-        DittoConfig config = new DittoConfig.Builder(databaseId)
-            .connect(new DittoConfig.Connect.Server(endpoint))
-            .build();
+        DittoConfig.Builder configBuilder = new DittoConfig.Builder(databaseId)
+            .connect(new DittoConfig.Connect.Server(endpoint));
+        
+        if (instanceName != null) {
+            configBuilder = configBuilder.persistenceDirectory("./ditto/" + instanceName);
+        }
+
+        DittoConfig config = configBuilder.build();
 
         try {
             this.ditto = DittoFactory.create(config);
+
+            ditto.updateTransportConfig(transportConfig -> {
+                transportConfig.peerToPeer(p2p -> {
+                    p2p.lan(lan -> lan.isEnabled(false));
+                });
+            });
 
             ditto.getAuth().setExpirationHandler((expiringDitto, timeUntilExpiration) ->
                 expiringDitto.getAuth().login(authToken, DittoAuthenticationProvider.development())
