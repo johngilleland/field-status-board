@@ -3,7 +3,6 @@ package com.fieldstatus;
 public class App {
     public static void main(String[] args) throws Exception {
         String instanceName = args.length > 0 ? args[0] : "a";
-        boolean isWriter = !instanceName.equals("b");
 
         System.out.println("Field Status Board - hello, world (instance: " + instanceName + ")");
         
@@ -20,18 +19,27 @@ public class App {
             }
         });
 
-        if (isWriter) {
-             String id = UnitStatus.documentIdFor("ALPHA-1");
+        String id = UnitStatus.documentIdFor("ALPHA-1");
 
-            repository.upsert(new UnitStatus("ALPHA-1", "active", System.currentTimeMillis()))
-                .toCompletableFuture().get();
-            Thread.sleep(2000);     
+        System.out.println("Disconnecting (simulated partition)...");
+        dittoService.stopSync();
+        Thread.sleep(2000);
 
-            repository.setStatus(id, "degraded").toCompletableFuture().get();
-            Thread.sleep(15000);
+        if (instanceName.equals("a")) {
+            System.out.println("Instance A editing status while offline...");
+            repository.setStatus(id, "partitioned-a").toCompletableFuture().get();
         } else {
-            System.out.println("Listening for sync updates...");
-            Thread.sleep(15000);    
-        } 
+            System.out.println("Instance B editing telemetry tick while offline...");
+            repository.tick(id, System.currentTimeMillis()).toCompletableFuture().get();
+        }
+
+        Thread.sleep(2000);
+
+        System.out.println("Reconnecting...");
+        dittoService.startSync();
+        Thread.sleep(10000);
+
+        System.out.println("Final merged state:");
+        System.out.println(repository.findById(id).toCompletableFuture().get());
     }
 }

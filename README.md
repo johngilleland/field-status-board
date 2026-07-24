@@ -40,3 +40,36 @@ Each instance holds its own local Ditto store and stays functional offline. Sync
 - Sync status monitoring
 - Degraded-network testing with 'tc'/'netem'
 - Web dashboard
+
+## Demo: Partition and Reconnect
+
+Proves two instances can each take concurrent edits to *different fields*
+of the same document while fully disconnected, and converge to a single
+merged state on reconnect — with zero manual conflict resolution.
+
+**Setup:** two terminals, same project directory.
+
+**Terminal 1:**
+```bash
+./gradlew run --args="a"
+```
+
+**Terminal 2** (start within a second or two of terminal 1):
+```bash
+./gradlew run --args="b"
+```
+
+**What happens:** each instance connects, then deliberately disconnects
+from Ditto Cloud (`ditto.getSync().stop()`), simulating a network
+partition. While disconnected, instance A edits the unit's `status`
+field; instance B edits its `lastTelemetryTick` field — concurrent,
+conflicting-looking edits to the same document, made with no
+coordination between the two. Both instances then reconnect
+(`ditto.getSync().start()`).
+
+**Observed result:** both instances converge to an identical final
+document containing *both* edits — A's `status` change and B's
+telemetry tick change — printed as each instance's own
+`"Final merged state:"` line. Neither edit is lost, and neither instance
+had to manually resolve a conflict; Ditto's CRDT merge combined the two
+field-level changes automatically.

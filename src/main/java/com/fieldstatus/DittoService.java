@@ -50,4 +50,12 @@ public class DittoService {
     public Ditto getDitto() {
         return ditto;
     }
+
+    public void stopSync() {
+        ditto.getSync().stop();
+    }
+
+    public void startSync() throws DittoException {
+        ditto.getSync().start();
+    }
 }
