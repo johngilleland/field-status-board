@@ -8,6 +8,9 @@ public class DittoService {
     private final Ditto ditto;
 
     public DittoService(String instanceName) {
+        
+        DittoLogger.setMinimumLogLevel(DittoLogLevel.WARNING);
+
         Dotenv dotenv = Dotenv.load();
 
         String endpoint = dotenv.get("DITTO_ENDPOINT_URL");

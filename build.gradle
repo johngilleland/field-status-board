@@ -21,3 +21,7 @@ dependencies {
     implementation 'com.ditto:ditto-binaries:5.0.2'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 }
+
+tasks.named('run') {
+    standardInput = System.in
+}
