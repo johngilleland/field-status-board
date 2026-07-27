@@ -94,7 +94,7 @@ public class UnitStatusRepository {
         return store.execute(EVICT, args);
     }
 
-    public DittoStoreObserver observerActive(Consumer<List<UnitStatus>> onChange) throws DittoException {
+    public DittoStoreObserver observeActive(Consumer<List<UnitStatus>> onChange) throws DittoException {
         return store.registerObserver(FIND_ACTIVE, result -> onChange.accept(mapResults(result)));
     }
 

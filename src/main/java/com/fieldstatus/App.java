@@ -14,7 +14,7 @@ public class App {
         UnitStatusRepository repository = new UnitStatusRepository(dittoService.getDitto());
         repository.subscribeActive();
 
-        repository.observerActive(units -> {
+        repository.observeActive(units -> {
             System.out.println("--- Board Update (" + units.size() + " active) ---");
             for (UnitStatus unit : units) {
                 System.out.println(unit);
