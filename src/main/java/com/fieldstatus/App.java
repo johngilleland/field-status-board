@@ -19,13 +19,16 @@ public class App {
             for (UnitStatus unit : units) {
                 System.out.println(unit);
             }
+            System.out.flush();
+            System.out.print("Enter command: ");
         });
 
         printHelp();
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
-            System.out.print("> ");
+            System.out.flush();
+            System.out.print("Enter command: ");
             String line = scanner.nextLine().trim();
             if (line.isEmpty()) {
                 continue;
@@ -50,6 +53,14 @@ public class App {
                         break;
                     case "remove":
                         handleRemove(repository, tokens);
+                        break;
+                    case "disconnect":
+                        dittoService.stopSync();
+                        System.out.println("Disconnected (simulated partition).");
+                        break;
+                    case "reconnect":
+                        dittoService.startSync();
+                        System.out.println("Reconnected.");
                         break;
                     case "help":
                         printHelp();
@@ -125,6 +136,8 @@ public class App {
                 tick <callsign>            Update a unit's telemetry timestamp
                 list                       Show active units
                 remove <callsign>          Soft-delete a unit
+                disconnect                 Simulate a network partition
+                reconnect                  Recconect to Ditto Cloud
                 help                       Show this message
                 quit / exit                Exit the program
             """);

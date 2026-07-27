@@ -108,3 +108,27 @@ offline, then reconnected (`ditto.getSync().start()`). Both instances
 converged to an identical final document containing both edits — confirmed
 via matching output on both sides. No manual conflict resolution;
 Ditto's CRDT merge combined the field-level changes automatically.
+
+## Partition demo via interactive CLI
+
+Re-verified the Day 4 partition/merge result using the interactive CLI's
+`disconnect`/`reconnect` commands instead of a hardcoded script, via a
+strict step-by-step protocol (disconnect both sides before either edits,
+each side edits only its own targeted field, reconnect both, then compare
+`list` on each). Result: both instances converged to an identical document
+containing both edits — confirmed via matching `list` output on both sides.
+
+## `report` (full upsert) can clobber a concurrent targeted edit
+
+Discovered while testing the above: mixing `report` with `status`/`tick`
+across a partition breaks the clean merge. `report` calls `UnitStatus.toDocument()`,
+which always writes *every* field — `status` and `lastTelemetryTick` together —
+regardless of which one the user actually meant to change. Combined with
+`ON ID CONFLICT DO UPDATE`'s documented behavior ("performs a value update
+on every field in the provided document, even if the value is the same"),
+a `report` on one side can overwrite a concurrent targeted edit to the same
+field made on the other side, since the full-document write touches that
+field too and may carry a newer timestamp.
+
+This is why the clean partition demo uses only `status`/`tick` (single-field
+targeted updates) on each side, never `report`, during the "offline" window.
